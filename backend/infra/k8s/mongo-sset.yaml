@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+spec:
+  selector:
+    app: mongo
+  ports:
+    - name: mongo-port
+      port: 27017
+      targetPort: 27017
+      protocol: TCP
+  clusterIP: None
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-sset
+spec:
+  serviceName: mongo-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo
+          image: mongo
+          command:
+            - "mongod"
+            - "--bind_ip"
+            - "0.0.0.0"
+          volumeMounts:
+            - name: mongo-persistent-storage
+              mountPath: "/data/db"
+      volumes:
+        - name: mongo-persistent-storage
+          persistentVolumeClaim:
+            claimName: mongo-pvc

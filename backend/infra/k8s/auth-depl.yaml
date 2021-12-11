@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth
+          image: shreeanshgupta/auth
+          # env:
+          #   - name: PORT
+          #     value: "5000"
+          #   - name: NODE_ENV
+          #     value: "development"
+          #   - name: MONGO_URI
+          #     value: "mongodb://mongo-service.default.svc.cluster.local"
+          env:
+            - name: PORT
+              valueFrom:
+                secretKeyRef:
+                  name: auth-env
+                  key: PORT
+            - name: NODE_ENV
+              valueFrom:
+                secretKeyRef:
+                  name: auth-env
+                  key: NODE_ENV
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: auth-env
+                  key: MONGO_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: auth-env
+                  key: JWT_SECRET
+            - name: JWT_EXPIRE
+              valueFrom:
+                secretKeyRef:
+                  name: auth-env
+                  key: JWT_EXPIRE
+            - name: JWT_COOKIE_EXPIRE
+              valueFrom:
+                secretKeyRef:
+                  name: auth-env
+                  key: JWT_COOKIE_EXPIRE
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth
+  ports:
+    - name: auth-port
+      port: 5000
+      targetPort: 5000
+      protocol: TCP
+  type: ClusterIP

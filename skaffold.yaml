@@ -1,0 +1,23 @@
+apiVersion: skaffold/v2beta26
+kind: Config
+metadata:
+  name: ticketing
+build:
+  local:
+    push: false
+  artifacts:
+    - image: shreeanshgupta/auth
+      context: ./backend/auth
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .
+deploy:
+  kubectl:
+    manifests:
+      - ./backend/infra/k8s/auth-depl.yaml
+      - ./backend/infra/k8s/mongo-sset.yaml
+      - ./backend/infra/k8s/mongo-pvc.yaml
+      - ./backend/infra/k8s/ingress-service.yaml
