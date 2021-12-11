@@ -3,11 +3,17 @@ import mongoose, { Document, Model } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { keys } from "../config/keys";
+import { BadRequestError } from "../config/errors/BadRequestError";
 
 interface IUserAttr {
   email: string;
   password: string;
   name: string;
+}
+
+interface IUser {
+  email: string;
+  password: string;
 }
 
 export interface IUserDocument extends Document {
@@ -22,6 +28,8 @@ export interface IUserDocument extends Document {
 interface IUserModel extends Model<IUserDocument> {
   build(data: IUserAttr): IUserDocument;
   validateRegister(data: IUserAttr): ValidationResult;
+  validateLogin(data: IUser): ValidationResult;
+  getUser(data: IUser): Promise<IUserDocument>;
 }
 
 const userSchema = new mongoose.Schema<IUserDocument, IUserModel>(
@@ -63,6 +71,30 @@ userSchema.statics.validateRegister = (data: IUserAttr) => {
   });
 
   return schema.validate(data);
+};
+
+userSchema.statics.validateLogin = (data: IUser) => {
+  const schema = Joi.object({
+    email: Joi.string().email(),
+    password: Joi.string(),
+  });
+
+  return schema.validate(data);
+};
+
+userSchema.statics.getUser = async (data: IUser) => {
+  const user = await User.findOne({ email: data.email });
+  console.log(user);
+  if (!user) {
+    throw new BadRequestError("Invalid email or password");
+  }
+
+  const isMatch = await bcrypt.compare(data.password, user.password);
+  if (!isMatch) {
+    throw new BadRequestError("Invalid email or password");
+  }
+
+  return user;
 };
 
 userSchema.statics.build = (data: IUserAttr) => {
