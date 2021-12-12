@@ -14,10 +14,19 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: .
+    - image: shreeanshgupta/client
+      context: ./client
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        manual:
+          - src: "**/*.js"
+            dest: .
 deploy:
   kubectl:
     manifests:
-      - ./backend/infra/k8s/auth-depl.yaml
-      - ./backend/infra/k8s/mongo-sset.yaml
-      - ./backend/infra/k8s/mongo-pvc.yaml
-      - ./backend/infra/k8s/ingress-service.yaml
+      - ./infra/k8s/auth-depl.yaml
+      - ./infra/k8s/mongo-sset.yaml
+      - ./infra/k8s/mongo-pvc.yaml
+      - ./infra/k8s/ingress-service.yaml
+      - ./infra/k8s/client-depl.yaml
